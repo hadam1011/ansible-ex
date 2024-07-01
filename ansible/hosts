@@ -1,0 +1,14 @@
+servers:
+  hosts:
+    server1:
+      ansible_host: 192.168.184.130
+    server2:
+      ansible_host: 192.168.184.131
+  vars:
+    ansible_user: osboxes
+
+local:
+  hosts:
+    local_host:
+      ansible_host: 192.168.184.128
+      ansible_user: hadam

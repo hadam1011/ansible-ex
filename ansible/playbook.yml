@@ -1,0 +1,33 @@
+- hosts: servers
+  vars:
+    user: osboxes
+  tasks:
+    - name: Get container information
+      shell: "docker ps -a --format '{% raw %} Container ID:{{ .ID }} Status:{{ .Status }} {% endraw %}'"
+      register: log_output
+    - name: Save output in temporary file
+      ansible.builtin.copy:
+        content: "{{log_output.stdout}}"
+        dest: "/home/{{user}}/logs_{{inventory_hostname}}.txt"
+    - name: Get the logs file from hosts
+      ansible.builtin.fetch:
+        src: "/home/{{user}}/logs_{{inventory_hostname}}.txt"
+        dest: "/home/hadam/tmp/"
+        flat: true
+
+- hosts: local
+  vars:
+    logs_dir: /home/hadam/BaiTap5_docker/container_logs.txt
+  tasks:
+    - name: Create logs file
+      ansible.builtin.file:
+        path: "{{logs_dir}}"
+        state: touch
+    - name: Gathering data into containers_log.txt file
+      shell: |
+        echo "Server: {{item}}" >> {{logs_dir}}
+        cat /home/hadam/tmp/logs_{{item}}.txt >> {{logs_dir}}
+        echo "" >> {{logs_dir}}
+      with_items: "{{groups['servers']}}"
+    - name: Clear tmp folder
+      shell: "rm -rf /home/hadam/tmp"
